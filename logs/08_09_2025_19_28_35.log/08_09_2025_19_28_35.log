@@ -1,0 +1,2 @@
+[ 2025-08-09 19:28:35,346 ] 54 root - INFO - \u2705 Loaded 11055 records from CSV.
+[ 2025-08-09 19:29:14,912 ] 62 root - INFO - \u2705 Successfully inserted 11055 records into MongoDB Atlas.
