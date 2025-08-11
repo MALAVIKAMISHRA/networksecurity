@@ -5,7 +5,7 @@ from networksecurity.logging.logger import logging
 ## configuration of the Data Ingestion Config
 
 from networksecurity.entity.config_entity import DataIngestionConfig
-from networksecurity.entity.artifact_entity import DataIngestionArtifacts
+from networksecurity.entity.artifact_entity import DataIngestionArtifact
 import os
 import sys
 import numpy as np
@@ -37,7 +37,6 @@ class DataIngestion:
             collection=self.mongo_client[database_name][collection_name]
 
             df=pd.DataFrame(list(collection.find()))
-            ###we remove the id column which gets added in
             if "_id" in df.columns.to_list():
                 df=df.drop(columns=["_id"],axis=1)
             
