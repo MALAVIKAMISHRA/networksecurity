@@ -1,0 +1,10 @@
+python-dotenv
+pandas
+numpy
+pymongo
+pymongo[srv]==3.6
+certifi
+scikit-learn
+dill
+pyaml
+##-e .  ###it helps to refer setup.py file
