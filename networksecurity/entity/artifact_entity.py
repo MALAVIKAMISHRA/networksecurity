@@ -4,6 +4,7 @@ from dataclasses import dataclass
 class DataIngestionArtifact:
     trained_file_path:str
     test_file_path:str
+<<<<<<< HEAD
     
 @dataclass
 class DataValidationArtifact:
@@ -13,4 +14,6 @@ class DataValidationArtifact:
     invalid_train_file_path:str
     invalid_test_file_path:str
     drift_report_file_path:str
+=======
+>>>>>>> bc398ba4f7de470523a096e8d5badde52b6115d8
     
