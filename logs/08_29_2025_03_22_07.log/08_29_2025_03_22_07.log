@@ -1,0 +1,31 @@
+[ 2025-08-29 03:22:09,837 ] 32 root - INFO - Initiate the data ingestion
+[ 2025-08-29 03:22:10,238 ] 85 root - INFO - >>> Starting Data Ingestion pipeline <<<
+[ 2025-08-29 03:22:10,238 ] 33 root - INFO - Reading data from db: 'MALAVIKAAI', collection: 'NetworkData'
+[ 2025-08-29 03:22:12,718 ] 36 root - INFO - Found 11055 records.
+[ 2025-08-29 03:22:12,729 ] 49 root - INFO - Saving data to feature store.
+[ 2025-08-29 03:22:12,792 ] 54 root - INFO - Data saved to: Artifacts\08_29_2025_03_22_08\data_ingestion\feature_store\phisingData.csv
+[ 2025-08-29 03:22:12,792 ] 61 root - INFO - Performing train-test split.
+[ 2025-08-29 03:22:12,795 ] 65 root - INFO - Train set shape: (8844, 31), Test set shape: (2211, 31)
+[ 2025-08-29 03:22:12,796 ] 70 root - INFO - Exporting train and test files.
+[ 2025-08-29 03:22:12,853 ] 77 root - INFO - Train file saved to: Artifacts\08_29_2025_03_22_08\data_ingestion\ingested\train.csv
+[ 2025-08-29 03:22:12,853 ] 78 root - INFO - Test file saved to: Artifacts\08_29_2025_03_22_08\data_ingestion\ingested\test.csv
+[ 2025-08-29 03:22:12,854 ] 91 root - INFO - >>> Data Ingestion pipeline complete <<<
+[ 2025-08-29 03:22:12,854 ] 39 root - INFO - Data Ingestion Completed
+[ 2025-08-29 03:22:12,855 ] 43 root - INFO - Initiate the data validation
+[ 2025-08-29 03:22:12,976 ] 32 root - INFO - Required number of columns:2
+[ 2025-08-29 03:22:12,976 ] 33 root - INFO - Data frame has columns:31
+[ 2025-08-29 03:22:12,976 ] 32 root - INFO - Required number of columns:2
+[ 2025-08-29 03:22:12,976 ] 33 root - INFO - Data frame has columns:31
+[ 2025-08-29 03:22:13,115 ] 47 root - INFO - Data Validation Completed
+[ 2025-08-29 03:22:13,115 ] 51 root - INFO - Data transformation started
+[ 2025-08-29 03:22:13,115 ] 63 root - INFO - Entered initiate_data_transformation method of DataTransformation class
+[ 2025-08-29 03:22:13,115 ] 65 root - INFO - Starting data transformation
+[ 2025-08-29 03:22:13,146 ] 48 root - INFO - Entered get_data_trnasformer_object method of Trnasformation class
+[ 2025-08-29 03:22:13,146 ] 53 root - INFO - Initialise KNNImputer with {'missing_values': nan, 'n_neighbors': 3, 'weights': 'uniform'}
+[ 2025-08-29 03:22:13,155 ] 53 root - INFO - Entered the save_object method of MainUtils class
+[ 2025-08-29 03:22:13,158 ] 59 root - INFO - Exited the save_object method of MainUtils class
+[ 2025-08-29 03:22:13,158 ] 53 root - INFO - Entered the save_object method of MainUtils class
+[ 2025-08-29 03:22:13,160 ] 59 root - INFO - Exited the save_object method of MainUtils class
+[ 2025-08-29 03:22:13,161 ] 55 root - INFO - Data transformation completed
+[ 2025-08-29 03:22:13,162 ] 59 root - INFO - Model Training started
+[ 2025-08-29 03:22:13,162 ] 70 root - ERROR - module 'networksecurity.constant.training_pipeline' has no attribute 'MODEL_TRAINER_OVER_FIITING_UNDER_FITTING_THRESHOLD'
