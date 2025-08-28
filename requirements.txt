@@ -5,9 +5,6 @@ pymongo
 pymongo[srv]==3.6
 certifi
 scikit-learn
-<<<<<<< HEAD
 dill
 pyaml
-=======
->>>>>>> bc398ba4f7de470523a096e8d5badde52b6115d8
 ##-e .  ###it helps to refer setup.py file

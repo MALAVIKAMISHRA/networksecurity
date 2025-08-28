@@ -2,66 +2,54 @@ import os
 import sys
 import json
 import pymongo
-import certifi
 import pandas as pd
 from dotenv import load_dotenv
 from networksecurity.exception.exception import NetworkSecurityException
 from networksecurity.logging.logger import logging
 
-# Load environment variables
+# Load environment variables from .env file
 load_dotenv()
 
-MONGO_DB_URL = os.getenv("MONGO_DB_URL")
+# FIX: Use the correct environment variable name to match your .env file
+MONGO_URI = os.getenv("MONGO_DB_URL")
+DATA_FILE_PATH = r"Network_Data\phisingData.csv"
+DATABASE_NAME = "MALAVIKAAI"
+COLLECTION_NAME = "NetworkData"
 
-class NetworkDataExtract:
-    def __init__(self):
-        # [CORRECTION] Removed empty try-except block as it was redundant.
-        self.mongo_client = None
 
-    def csv_to_json_convertor(self, file_path):
-        try:
-            data = pd.read_csv(file_path)
-            # No need for .reset_index() if the CSV has a standard 0-based index
-            records = list(json.loads(data.to_json(orient="records")))
-            return records
-        except Exception as e:
-            raise NetworkSecurityException(e, sys)
+def push_data_to_db():
+    """
+    Reads data from a CSV file and pushes it to a MongoDB collection.
+    """
+    try:
+        # 1. Read the data from the CSV file
+        logging.info("Reading CSV file...")
+        data = pd.read_csv(DATA_FILE_PATH)
+        json_records = list(json.loads(data.to_json(orient="records")))
+        logging.info(f"Successfully loaded {len(json_records)} records from CSV.")
 
-    def insert_data_mongodb(self, records, database, collection):
-        try:
-            # [CORRECTION] Simplified the client connection.
-            # Modern pymongo handles TLS/SSL certificates automatically in most environments.
-            self.mongo_client = pymongo.MongoClient(MONGO_DB_URL)
-            
-            db = self.mongo_client[database]
-            col = db[collection]
+        # 2. Connect to MongoDB
+        logging.info("Connecting to MongoDB...")
+        if not MONGO_URI:
+            raise ValueError("MONGO_URI not found. Make sure it's set in your .env file.")
+        
+        mongo_client = pymongo.MongoClient(MONGO_URI)
+        
+        # 3. Insert the records into the collection
+        logging.info(f"Inserting records into database '{DATABASE_NAME}' and collection '{COLLECTION_NAME}'...")
+        db = mongo_client[DATABASE_NAME]
+        collection = db[COLLECTION_NAME]
 
-            col.insert_many(records)
-            return len(records)
-        except Exception as e:
-            raise NetworkSecurityException(e, sys)
+        # Optional: Delete existing data to avoid duplicates
+        collection.delete_many({})
+        
+        collection.insert_many(json_records)
+        logging.info(f"✅ Successfully inserted {len(json_records)} records into MongoDB.")
+
+    except Exception as e:
+        logging.error(e)
+        raise NetworkSecurityException(e, sys) from e
 
 
 if __name__ == '__main__':
-    try:
-        FILE_PATH = r"Network_Data\phisingData.csv"
-        DATABASE = "MALAVIKAAI"
-        COLLECTION = "NetworkData"
-
-        networkobj = NetworkDataExtract()
-
-        records = networkobj.csv_to_json_convertor(file_path=FILE_PATH)
-        logging.info(f"✅ Loaded {len(records)} records from CSV.")
-
-        # Show first 3 records for verification
-        print("\nSample records from CSV:")
-        for rec in records[:3]:
-            print(rec)
-
-        no_of_records = networkobj.insert_data_mongodb(records, DATABASE, COLLECTION)
-        logging.info(f"✅ Successfully inserted {no_of_records} records into MongoDB Atlas.")
-
-    except Exception as e:
-        # It's better to log the exception before raising your custom one
-        logging.error(e)
-        raise NetworkSecurityException(e, sys)
+    push_data_to_db()
