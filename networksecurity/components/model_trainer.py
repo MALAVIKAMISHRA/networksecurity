@@ -1,5 +1,7 @@
 import sys
 import os
+import mlflow
+import mlflow.sklearn
 
 from networksecurity.exception.exception import NetworkSecurityException 
 from networksecurity.logging.logger import logging
@@ -29,7 +31,7 @@ class ModelTrainer:
             self.data_transformation_artifact=data_transformation_artifact
         except Exception as e:
             raise NetworkSecurityException(e,sys)
-    
+            
     def train_model(self,X_train,y_train,x_test,y_test):
         try:
             models = {
@@ -70,17 +72,44 @@ class ModelTrainer:
             ]
             best_model = models[best_model_name]
             
-            y_train_pred=best_model.predict(X_train)
-            classification_train_metric=get_classification_score(y_true=y_train,y_pred=y_train_pred)
-            
-            # REMOVED: The problematic function call was here.
-            # self.track_mlflow(best_model,classification_train_metric)
+            # --- CORRECTED MLFLOW TRACKING ---
+            # Start a single MLflow run to log everything for this experiment
+            with mlflow.start_run():
+                logging.info(f"Starting MLflow run for the best model: {best_model_name}")
 
-            y_test_pred=best_model.predict(x_test)
-            classification_test_metric=get_classification_score(y_true=y_test,y_pred=y_test_pred)
+                # Log parameters
+                mlflow.log_param("best_model_name", best_model_name)
+                
+                # Log training metrics
+                y_train_pred=best_model.predict(X_train)
+                classification_train_metric=get_classification_score(y_true=y_train,y_pred=y_train_pred)
+                train_metrics = {
+                    "train_f1_score": classification_train_metric.f1_score,
+                    "train_precision": classification_train_metric.precision_score,
+                    "train_recall": classification_train_metric.recall_score
+                }
+                mlflow.log_metrics(train_metrics)
+                logging.info(f"Logged training metrics: {train_metrics}")
+
+                # Log testing metrics
+                y_test_pred=best_model.predict(x_test)
+                classification_test_metric=get_classification_score(y_true=y_test,y_pred=y_test_pred)
+                test_metrics = {
+                    "test_f1_score": classification_test_metric.f1_score,
+                    "test_precision": classification_test_metric.precision_score,
+                    "test_recall": classification_test_metric.recall_score
+                }
+                mlflow.log_metrics(test_metrics)
+                logging.info(f"Logged testing metrics: {test_metrics}")
+
+                # Log the model artifact
+                mlflow.sklearn.log_model(best_model, "model")
+                logging.info("Logged model artifact to MLflow.")
+
+            # --- END OF MLFLOW CORRECTION ---
 
             preprocessor = load_object(file_path=self.data_transformation_artifact.transformed_object_file_path)
-                
+            
             model_dir_path = os.path.dirname(self.model_trainer_config.trained_model_file_path)
             os.makedirs(model_dir_path,exist_ok=True)
 
