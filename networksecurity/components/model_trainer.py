@@ -2,6 +2,7 @@ import sys
 import os
 import mlflow
 import mlflow.sklearn
+import joblib # <-- Re-importing joblib to save the model file
 
 from networksecurity.exception.exception import NetworkSecurityException 
 from networksecurity.logging.logger import logging
@@ -23,6 +24,9 @@ from sklearn.ensemble import (
     GradientBoostingClassifier,
     RandomForestClassifier,
 )
+
+import dagshub
+dagshub.init(repo_owner='MALAVIKAMISHRA', repo_name='networksecurity', mlflow=True)
 
 class ModelTrainer:
     def __init__(self,model_trainer_config:ModelTrainerConfig,data_transformation_artifact:DataTransformationArtifact):
@@ -63,24 +67,17 @@ class ModelTrainer:
             model_report:dict=evaluate_models(X_train=X_train,y_train=y_train,X_test=x_test,y_test=y_test,
                                               models=models,param=params)
             
-            ## To get best model score from dict
             best_model_score = max(sorted(model_report.values()))
-
-            ## To get best model name from dict
             best_model_name = list(model_report.keys())[
                 list(model_report.values()).index(best_model_score)
             ]
             best_model = models[best_model_name]
             
-            # --- CORRECTED MLFLOW TRACKING ---
-            # Start a single MLflow run to log everything for this experiment
             with mlflow.start_run():
                 logging.info(f"Starting MLflow run for the best model: {best_model_name}")
 
-                # Log parameters
                 mlflow.log_param("best_model_name", best_model_name)
                 
-                # Log training metrics
                 y_train_pred=best_model.predict(X_train)
                 classification_train_metric=get_classification_score(y_true=y_train,y_pred=y_train_pred)
                 train_metrics = {
@@ -91,7 +88,6 @@ class ModelTrainer:
                 mlflow.log_metrics(train_metrics)
                 logging.info(f"Logged training metrics: {train_metrics}")
 
-                # Log testing metrics
                 y_test_pred=best_model.predict(x_test)
                 classification_test_metric=get_classification_score(y_true=y_test,y_pred=y_test_pred)
                 test_metrics = {
@@ -102,11 +98,18 @@ class ModelTrainer:
                 mlflow.log_metrics(test_metrics)
                 logging.info(f"Logged testing metrics: {test_metrics}")
 
-                # Log the model artifact
-                mlflow.sklearn.log_model(best_model, "model")
-                logging.info("Logged model artifact to MLflow.")
+                
+                # 1. Save the model to a local file
+                model_filename = "model.pkl"
+                joblib.dump(best_model, model_filename)
 
-            # --- END OF MLFLOW CORRECTION ---
+                # 2. Log that file as an artifact
+                mlflow.log_artifact(model_filename, artifact_path="model_artifact")
+                
+                # 3. Clean up the local file
+                os.remove(model_filename)
+                
+                logging.info("Logged model artifact to DagsHub MLflow successfully.")
 
             preprocessor = load_object(file_path=self.data_transformation_artifact.transformed_object_file_path)
             
@@ -115,6 +118,8 @@ class ModelTrainer:
 
             Network_Model=NetworkModel(preprocessor=preprocessor,model=best_model)
             save_object(self.model_trainer_config.trained_model_file_path,obj=Network_Model)
+            
+            save_object("final_model/model.pkl",best_model)
 
             ## Model Trainer Artifact
             model_trainer_artifact=ModelTrainerArtifact(
@@ -148,3 +153,4 @@ class ModelTrainer:
             
         except Exception as e:
             raise NetworkSecurityException(e,sys)
+
